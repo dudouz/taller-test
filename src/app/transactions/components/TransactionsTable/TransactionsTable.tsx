@@ -27,13 +27,15 @@ interface DataTableProps<TData, TValue> {
   data: TData[];
 }
 
+const ITEMS_PER_PAGE = 5;
+
 export function TransactionsTable<TData, TValue>({
   columns,
   data,
 }: DataTableProps<TData, TValue>) {
   const [pagination, setPagination] = React.useState({
     pageIndex: 0,
-    pageSize: 5,
+    pageSize: ITEMS_PER_PAGE,
   });
   const [sorting, setSorting] = React.useState<SortingState>([]);
 
@@ -60,6 +62,14 @@ export function TransactionsTable<TData, TValue>({
       return sum + (amount || 0);
     }, 0);
   }, [rows]);
+
+  const currentPageMetadata: Record<string, number> = {
+    from:
+      pagination.pageIndex === 0
+        ? 1
+        : ITEMS_PER_PAGE * pagination.pageIndex + 1,
+    to: (pagination.pageIndex + 1) * ITEMS_PER_PAGE,
+  };
 
   return (
     <>
@@ -115,7 +125,10 @@ export function TransactionsTable<TData, TValue>({
             <TableFooter>
               <TableRow>
                 <TableCell colSpan={4} className="text-right">
-                  Showing {table.getRowModel().rows.length} transaction
+                  Showing {currentPageMetadata.from} to {currentPageMetadata.to}{" "}
+                  transaction
+                  {table.getRowModel().rows.length > 1 && "s"} <br />
+                  Total {data.length} transaction
                   {table.getRowModel().rows.length > 1 && "s"} <br />
                   Total: {formatCurrency(calculatePageTotal)}
                 </TableCell>
