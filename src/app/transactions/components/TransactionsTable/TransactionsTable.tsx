@@ -50,7 +50,6 @@ export function TransactionsTable<TData, TValue>({
   const calculatePageTotal = React.useMemo(() => {
     return rows.reduce((sum, row) => {
       const amount = row.getValue<number>("amount");
-      console.log(amount, "amnt");
 
       return sum + (amount || 0);
     }, 0);
