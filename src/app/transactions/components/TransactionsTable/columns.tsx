@@ -49,7 +49,15 @@ export const columns: ColumnDef<Transaction>[] = [
     size: 500,
     minSize: 500,
     accessorKey: "amount",
-    header: () => <div className="font-bold">Amount</div>,
+    header: ({ column }) => (
+      <span
+        className="cursor-pointer flex items-center font-bold"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
+        Amount
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </span>
+    ),
     cell: ({ row }) => {
       const value = row.getValue<number | string>("amount");
       const formatted = formatCurrency(value);
