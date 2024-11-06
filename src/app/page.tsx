@@ -1,101 +1,137 @@
-import Image from "next/image";
+"use client";
+import React from "react";
+import { useToast } from "@/hooks/use-toast";
 
-export default function Home() {
+import { Transaction } from "@/types/transaction";
+
+import { DatePicker } from "@/components/ui/date-picker";
+import { filterTransactionsByDateRange } from "@/lib/utils";
+import { isBefore } from "date-fns";
+import {
+  columns,
+  TransactionsTable,
+} from "./transactions/components/TransactionsTable";
+
+export default function TransactionsList() {
+  const { toast } = useToast();
+  const [currentTransactions, setCurrentTransactions] = React.useState<
+    Transaction[]
+  >([]);
+  const [filteredData, setFilteredData] =
+    React.useState<Transaction[]>(currentTransactions);
+
+  const [startDate, setStartDate] = React.useState<Date | undefined>(undefined);
+  const [endDate, setEndDate] = React.useState<Date | undefined>(undefined);
+  const [loading, setIsLoading] = React.useState(true);
+
+  const clearFilters = () => {
+    setStartDate(undefined);
+    setEndDate(undefined);
+    setFilteredData(currentTransactions);
+  };
+
+  React.useEffect(() => {
+    const fetchData = async () => {
+      let result;
+
+      try {
+        result = await fetch("api/transactions");
+      } catch {
+        toast({
+          title: "Error fetching transactions",
+          description:
+            "There was an error while fetching your transactions, try again.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+
+      if (result) {
+        const { transactions } = await result.json();
+
+        setCurrentTransactions(transactions);
+        setFilteredData(transactions);
+      }
+    };
+
+    fetchData();
+  }, [toast]);
+
+  React.useEffect(() => {
+    if (!startDate || !endDate) {
+      return;
+    }
+
+    const start = new Date(startDate).toISOString();
+    const end = new Date(endDate).toISOString();
+
+    const isStartDateBeforeEndDate = isBefore(start, end);
+
+    if (!isStartDateBeforeEndDate) {
+      toast({
+        title: "Wrong date range",
+        description: "Please provide an end date after the start date.",
+        variant: "destructive",
+      });
+
+      return;
+    }
+
+    const filtered = filterTransactionsByDateRange(
+      currentTransactions as Transaction[],
+      start,
+      end
+    );
+
+    setFilteredData(filtered);
+  }, [startDate, endDate, toast, currentTransactions]);
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <section className="flex flex-col min-w-screen min-h-screen  p-10 gap-5 ">
+      <header className="flex w-full justify-between items-center">
+        <h1 className="text-3xl font-bold">Transactions List</h1>
+      </header>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+      {loading ? (
+        <span> Loading Data </span>
+      ) : (
+        <div className="w-full h-full">
+          <div className="flex gap-2  w-full min-h-[70px] flex-col mb-5">
+            <div className="flex gap-2 items-center">
+              <span>Filter By Date</span>
+
+              <span
+                className="text-xs px-2 py-1 hover:text-white hover:bg-slate-400 transition-all rounded-xl cursor-pointer"
+                onClick={() => clearFilters()}
+              >
+                Clear Filter
+              </span>
+            </div>
+
+            <div className="flex gap-4 items-center">
+              <div className="flex  flex-col">
+                <label className="text-sm" htmlFor="start-date">
+                  Start Date
+                </label>
+                <DatePicker date={startDate} setDate={setStartDate} />
+              </div>
+
+              <div className="flex  flex-col">
+                <label className="text-sm" htmlFor="end-date">
+                  End Date
+                </label>
+                <DatePicker date={endDate} setDate={setEndDate} />
+              </div>
+            </div>
+          </div>
+
+          <TransactionsTable<Transaction, Transaction>
+            data={filteredData}
+            columns={columns}
+          />
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+      )}
+    </section>
   );
 }
