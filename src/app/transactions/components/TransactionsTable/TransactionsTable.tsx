@@ -129,11 +129,9 @@ export function TransactionsTable<TData, TValue>({
               <TableRow>
                 <TableCell colSpan={4} className="text-right">
                   Showing {currentPageMetadata.from} to {currentPageMetadata.to}{" "}
-                  transaction
+                  out of {data.length} transaction
                   {table.getRowModel().rows.length > 1 && "s"} <br />
-                  Total {data.length} transaction
-                  {table.getRowModel().rows.length > 1 && "s"} <br />
-                  Total: {formatCurrency(calculatePageTotal)}
+                  Current page total: {formatCurrency(calculatePageTotal)}
                 </TableCell>
               </TableRow>
             </TableFooter>
