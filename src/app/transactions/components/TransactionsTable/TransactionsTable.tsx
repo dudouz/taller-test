@@ -63,12 +63,15 @@ export function TransactionsTable<TData, TValue>({
     }, 0);
   }, [rows]);
 
+  const totalPageItems =
+    table.getRowModel().rows?.length * (pagination.pageIndex + 1);
+
   const currentPageMetadata: Record<string, number> = {
     from:
       pagination.pageIndex === 0
         ? 1
         : ITEMS_PER_PAGE * pagination.pageIndex + 1,
-    to: (pagination.pageIndex + 1) * ITEMS_PER_PAGE,
+    to: totalPageItems,
   };
 
   return (
