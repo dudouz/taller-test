@@ -109,7 +109,7 @@ export default function TransactionsList() {
               </span>
             </div>
 
-            <div className="flex gap-4 items-center">
+            <div className="flex gap-4 sm:items-center  sm:flex-row flex-col ">
               <div className="flex  flex-col">
                 <label className="text-sm" htmlFor="start-date">
                   Start Date
