@@ -1,37 +1,60 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { Transaction } from "@/types/transaction";
 import { ColumnDef } from "@tanstack/react-table";
+import { ArrowUpDown } from "lucide-react";
 
 export const columns: ColumnDef<Transaction>[] = [
   {
     accessorKey: "id",
-    header: () => <span className="font-bold">ID</span>,
+    header: () => <div className="font-bold w-20">ID</div>,
+    maxSize: 20,
+    size: 20,
+    minSize: 20,
   },
   {
     accessorKey: "date",
-    header: () => <span className="font-bold">Date</span>,
+
+    header: ({ column }) => (
+      <span
+        className="cursor-pointer flex items-center font-bold"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
+        Date
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </span>
+    ),
     cell: ({ row }) => {
       const date = row.getValue<string>("date");
 
       const formatted = formatDate(date);
 
-      return <span>{formatted}</span>;
+      return <div>{formatted}</div>;
     },
+    maxSize: 500,
+    size: 500,
+    minSize: 500,
   },
   {
+    maxSize: 500,
+    size: 500,
+    minSize: 500,
     accessorKey: "description",
-    header: () => <span className="font-bold">Description</span>,
+    header: () => <div className="font-bold">Description</div>,
   },
   {
+    maxSize: 500,
+    size: 500,
+    minSize: 500,
     accessorKey: "amount",
-    header: () => <span className="font-bold">Amount</span>,
+    header: () => <div className="font-bold">Amount</div>,
     cell: ({ row }) => {
       const value = row.getValue<number | string>("amount");
       const formatted = formatCurrency(value);
 
-      return <span>{formatted}</span>;
+      return <div>{formatted}</div>;
     },
   },
 ];
